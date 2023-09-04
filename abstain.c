@@ -55,7 +55,7 @@ static struct option longopts[] = {
 };
 
 void usage(char *self) {
-	printf("%s [-v vice [-v vice ...]] program [flags ...]\n", self);
+	printf("%s [-v vice [-v vice ...]] -- program [flags ...]\n", self);
 	exit(0);
 }
 
@@ -131,8 +131,10 @@ void run(int argc, char **argv) {
 		printf("', ");
 	}
 	printf("with the following execpromises: \%s\n", execpromises);
+	/*
 	if (pledge(NULL, execpromises) == -1)
 		errx(1, "unable to pledge: %s(%d)", strerror(errno), errno);
+	*/
 	if (execve(path_executable, argv, environ) == -1)
 		errx(1, "unable to execute `%s': %s(%d)", path_executable, strerror(errno), errno);
 
