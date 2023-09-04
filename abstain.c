@@ -85,7 +85,6 @@ void run(int argc, char **argv) {
 	char *promise;
 	char *executable;
 	char *path_executable;
-	char *argstring = NULL;
 	char *pathstring;
 
 	for (int i = 0; i < nvices; i++) {
@@ -130,7 +129,7 @@ void run(int argc, char **argv) {
 			printf("%s ", argv[i]);
 		printf("', ");
 	}
-	printf("with the following execpromises: \%s\n", execpromises);
+	printf("with the following execpromises: \%s\n\n", execpromises);
 	if (pledge(NULL, execpromises) == -1)
 		errx(1, "unable to pledge: %s(%d)", strerror(errno), errno);
 	if (execve(path_executable, argv, environ) == -1)
