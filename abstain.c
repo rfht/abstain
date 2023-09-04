@@ -100,7 +100,7 @@ void run(int argc, char **argv) {
 	if (strlcpy(execpromises, promise_error, sizeof(execpromises)) > sizeof(execpromises))
 		errx(1, NULL);
 
-	for (int i = 1; i < sizeof(promise_all) / sizeof(promise_all[0]); i++) {
+	for (int i = 0; i < sizeof(promise_all) / sizeof(promise_all[0]); i++) {
 		promise = promise_all[i];
 		if (is_string_in_array(promise, sizeof(promise), vices, MAX_PROMISE_LENGTH) == FAIL) {
 			if (snprintf(execpromises, STR_MAX, "%s %s", execpromises, promise) < 0)
@@ -131,10 +131,8 @@ void run(int argc, char **argv) {
 		printf("', ");
 	}
 	printf("with the following execpromises: \%s\n", execpromises);
-	/*
 	if (pledge(NULL, execpromises) == -1)
 		errx(1, "unable to pledge: %s(%d)", strerror(errno), errno);
-	*/
 	if (execve(path_executable, argv, environ) == -1)
 		errx(1, "unable to execute `%s': %s(%d)", path_executable, strerror(errno), errno);
 
