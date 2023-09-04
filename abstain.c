@@ -50,26 +50,25 @@ int nvices = 0;
 char **vices;
 char fullbin[PATH_MAX];
 
-static const char optstr[]	= "+lv:";
+static const char optstr[]	= "+lV:v:";
 static struct option longopts[]	= {
 	{ "list",	no_argument,		NULL,	'l'	},
 	{ "vice",	required_argument,	NULL,	'v'	},
+	{ "vices",	required_argument,	NULL,	'V'	},
 	{ NULL,		0,			NULL,	0	}
 };
 
 void list_promises() {
 	size_t npromises = sizeof(promise_all) / sizeof(promise_all[0]);
-
 	for (int i = 0; i < npromises; i++) {
 		printf("%s\n", promise_all[i]);
 	}
-
 	exit(0);
 }
 
 
 void usage(char *self) {
-	printf("%s [-v vice [-v vice ...]] -- program [flags ...]\n", self);
+	printf("%s [-v vice [-v vice ...] | -V vice,vice,...] [--] program [flags ...]\n", self);
 	exit(0);
 }
 
@@ -155,6 +154,8 @@ void run(int argc, char **argv) {
 int main(int argc, char** argv) {
 	int ch;
 	char *self = argv[0];
+	char *v;
+	char *vices_string = "\0";
 
 	if ((vices = calloc(MAX_VICES, MAX_PROMISE_LENGTH)) == NULL)
 	    errx(1, NULL);
@@ -163,6 +164,9 @@ int main(int argc, char** argv) {
 		switch (ch) {
 		case 'l':
 			list_promises();
+			break;
+		case 'V':
+			vices_string = optarg;
 			break;
 		case 'v':
 			vices[nvices++] = optarg;
@@ -173,6 +177,14 @@ int main(int argc, char** argv) {
 	}
 	argc -= optind;
 	argv += optind;
+
+	if (*vices != NULL && vices_string[0] != '\0')
+		errx(1, "can't combine -v/--vice and -V/--vices flags");
+
+	while ((v = strsep(&vices_string, ",")) != NULL) {
+		if (*v != '\0')
+			vices[nvices++] = v;
+	}
 
 	if (argc < 1)
 		usage(self);
