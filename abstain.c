@@ -43,16 +43,30 @@ char *promise_all[] = {
 	"id", "pf", "route", "wroute",
 	"audio", "video", "bpf", "unveil"
 };
+
 char *promise_error = "error";
 char *execpromises;
 int nvices = 0;
 char **vices;
 char fullbin[PATH_MAX];
 
-static struct option longopts[] = {
+static const char optstr[]	= "+lv:";
+static struct option longopts[]	= {
+	{ "list",	no_argument,		NULL,	'l'	},
 	{ "vice",	required_argument,	NULL,	'v'	},
 	{ NULL,		0,			NULL,	0	}
 };
+
+void list_promises() {
+	size_t npromises = sizeof(promise_all) / sizeof(promise_all[0]);
+
+	for (int i = 0; i < npromises; i++) {
+		printf("%s\n", promise_all[i]);
+	}
+
+	exit(0);
+}
+
 
 void usage(char *self) {
 	printf("%s [-v vice [-v vice ...]] -- program [flags ...]\n", self);
@@ -145,8 +159,11 @@ int main(int argc, char** argv) {
 	if ((vices = calloc(MAX_VICES, MAX_PROMISE_LENGTH)) == NULL)
 	    errx(1, NULL);
 
-	while ((ch = getopt_long(argc, argv, "v:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, optstr, longopts, NULL)) != -1) {
 		switch (ch) {
+		case 'l':
+			list_promises();
+			break;
 		case 'v':
 			vices[nvices++] = optarg;
 			break;
