@@ -103,14 +103,13 @@ void run(int argc, char **argv) {
 			errx(-1, NULL);
 	}
 
-	printf("executing `%s' ", executable);
+	printf("executing:\t`%s", executable);
 	if (argc > 1) {
-		printf("with arguments: `");
 		for (int i = 1; i < argc; i++)
-			printf("%s ", argv[i]);
-		printf("', ");
+			printf(" %s", argv[i]);
 	}
-	printf("with the following execpromises: \%s\n\n", execpromises);
+	printf("'\n");
+	printf("execpromises:\t%s\n\n", execpromises);
 	if (pledge(NULL, execpromises) == -1)
 		errx(-1, "unable to pledge: %s(%d)", strerror(errno), errno);
 	if (execvp(executable, argv) == -1)
