@@ -8,7 +8,8 @@ promises
 
 # SYNOPSIS
 
-**abstain&nbsp;\[**-le**]**
+**abstain**
+\[**-le**]
 \[**-v**&nbsp;*vice\[,vice,...]*]
 *binary*&nbsp;\[*arguments*&nbsp;*...*]
 
@@ -63,10 +64,10 @@ to the standard output.
 
 The main use case that
 **abstain**
-is designed for is to gather empirical behavioral data on software, for specific types of syscalls, bulding on
+is designed for is to gather empirical behavioral data on software for specific types of syscalls, building on
 pledge(2)
 *promise*
-sets. Ideally, this is combined with source code review and a study of kernel trace logs
+sets. Ideally, this is part of a comprehensive investigation that includes source code review and a study of kernel trace logs
 (see
 ktrace(1))
 .
@@ -112,9 +113,13 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
 # CAVEATS
 
-Avoid relying on this to restrain your programs. The use of
+Avoid relying on
+**abstain**
+to restrain your programs. The use of
 pledge(2)
-in the program is a superior option wherever feasible. The main use case may be experimental or educational.
+modification inside the program source is a superior option wherever feasible. The intended use cases are investigation of external program behavior as part of a development process to add more robust restriction with
+pledge(2),
+or educational to understand the breadth of syscall use.
 
 Some system calls when allowed still have restrictions applied to them. Refer to
 pledge(2)

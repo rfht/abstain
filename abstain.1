@@ -7,7 +7,8 @@
 .Xr pledge 2
 promises
 .Sh SYNOPSIS
-.Nm abstain Op Fl le
+.Nm abstain
+.Op Fl le
 .Op Fl v Ar vice[,vice,...]
 .Ar binary Op Ar arguments Ar ...
 .Sh DESCRIPTION
@@ -60,10 +61,10 @@ to the standard output.
 .Pp
 The main use case that
 .Nm
-is designed for is to gather empirical behavioral data on software, for specific types of syscalls, bulding on
+is designed for is to gather empirical behavioral data on software for specific types of syscalls, building on
 .Xr pledge 2
 .Em promise
-sets. Ideally, this is combined with source code review and a study of kernel trace logs
+sets. Ideally, this is part of a comprehensive investigation that includes source code review and a study of kernel trace logs
 .Po
 see
 .Xr ktrace 1
@@ -101,9 +102,13 @@ will return -1.
 .An -nosplit
 .An Thomas Frohwein Aq Mt thfr@openbsd.org
 .Sh CAVEATS
-Avoid relying on this to restrain your programs. The use of
+Avoid relying on
+.Nm
+to restrain your programs. The use of
 .Xr pledge 2
-in the program is a superior option wherever feasible. The main use case may be experimental or educational.
+modification inside the program source is a superior option wherever feasible. The intended use cases are investigation of external program behavior as part of a development process to add more robust restriction with
+.Xr pledge 2 ,
+or educational to understand the breadth of syscall use.
 .Pp
 Some system calls when allowed still have restrictions applied to them. Refer to
 .Xr pledge 2
