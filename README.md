@@ -8,7 +8,7 @@ promises
 
 # SYNOPSIS
 
-**abstain&nbsp;\[**-l**]**
+**abstain&nbsp;\[**-le**]**
 \[**-v**&nbsp;*vice\[,vice,...]*]
 *binary*&nbsp;\[*flags*&nbsp;*...*]
 
@@ -23,29 +23,52 @@ with
 using
 pledge(2)
 *execpromises*.
-By default, it will do so with all possible
+By default, it will do so with all
 *execpromises*
-included. Specifying
+allowed.
+
+Specify
 *vices*
 with
 **-v**
-removes those from the
-*execpromises*,
-thereby restricting the allowed syscalls for the
-*binary*.
-Multiple
-*vices*
-can be specified separated by commas.
+in a comma-separated list.
+They represent the exact same concept as
+*promises*
+in
+pledge(2),
+except that their effect is the reverse - they
+prohibit
+access to syscalls by removing the corresponding
+pledge(2)
+*promise*
+from the
+*execpromises*.
+
+The
+**-e**
+flag adds the
+'error'
+*promise*
+(which is not included by default)
+so that a violation will lead to
+`ENOSYS`
+instead of
+`SIGABRT`.
+
 The
 **-l**
 flag prints all possible
 *vices*
 to the standard output.
 
+The main use case that
 **abstain**
-always runs with the
-'error'
-promise.
+is designed for is to gather empirical behavioral data on software, for specific types of syscalls, bulding on
+pledge(2)
+syscall groups. Ideally, this is combined with source code review and a study of kernel trace logs
+(see
+ktrace(1))
+.
 
 # EXAMPLES
 
@@ -88,13 +111,27 @@ Thomas Frohwein &lt;[thfr@openbsd.org](mailto:thfr@openbsd.org)&gt;
 
 # CAVEATS
 
+Avoid relying on this to restrain your programs. The use of
+pledge(2)
+in the program is a superior option wherever feasible. The main use case may be experimental or educational.
+
 Some system calls when allowed still have restrictions applied to them. Refer to
 pledge(2)
 for details.
 
-The default of running with
+Programs violating their
+pledge(2)
+restrictions by invoking syscalls from one of the
+*vices*
+are killed with uncatchable
+`SIGABRT`.
+
+When running with
+**-e**,
+the
 'error'
-promise comes with risk that the program can enter inconsistent state, especially
+*promise*
+comes with risk that the program can enter inconsistent state, especially
 setuid(2)
 or
 setgid(2)
