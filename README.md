@@ -2,9 +2,9 @@ ABSTAIN(1) - General Commands Manual
 
 # NAME
 
-**abstain** - execute programs with reduced
+**abstain** - selectively disallow
 pledge(2)
-promises
+promises for program execution
 
 # SYNOPSIS
 
