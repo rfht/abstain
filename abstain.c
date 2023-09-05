@@ -42,7 +42,7 @@ char *promise_all[] = {
 };
 
 const char *promise_error = "error";
-char *execpromises;
+char execpromises[STR_MAX] = "\0";
 int nvices = 0;
 char **vices;
 int use_error = 0;
@@ -87,9 +87,6 @@ void run(int argc, char **argv) {
 		}
 	}
 
-	if ((execpromises = calloc(STR_MAX, sizeof(char))) == NULL)
-		errx(-1, NULL);
-
 	for (int i = 0; i < sizeof(promise_all) / sizeof(promise_all[0]); i++) {
 		promise = promise_all[i];
 		if (is_string_in_array(promise, sizeof(promise), vices, MAX_PROMISE_LENGTH) == FAIL) {
@@ -97,12 +94,12 @@ void run(int argc, char **argv) {
 				if (strlcpy(execpromises, promise, sizeof(execpromises)) > sizeof(execpromises))
 					errx(-1, NULL);
 			}
-			if (snprintf(execpromises, STR_MAX, "%s %s", execpromises, promise) < 0)
+			if (snprintf(execpromises, sizeof(execpromises), "%s %s", execpromises, promise) < 0)
 				errx(-1, NULL);
 		}
 	}
 	if (use_error) {
-		if (snprintf(execpromises, STR_MAX, "%s %s", execpromises, promise_error) < 0) 
+		if (snprintf(execpromises, sizeof(execpromises), "%s %s", execpromises, promise_error) < 0)
 			errx(-1, NULL);
 	}
 
