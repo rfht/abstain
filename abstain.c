@@ -17,10 +17,9 @@
 #include <err.h>
 #include <errno.h>
 #include <getopt.h>
-#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>	// PATH_MAX
+#include <string.h>
 #include <unistd.h>
 
 #define STR_MAX			1024
@@ -30,10 +29,8 @@
 #define OK			0
 #define FAIL			-1
 
-extern char **environ;
-
 /* don't include error promise here because it is pledged by default */
-char *promise_all[] = {
+const char *promise_all[] = {
 	"stdio", "rpath", "wpath", "cpath",
 	"dpath", "tmppath", "inet", "mcast",
 	"fattr", "chown", "flock", "unix",
@@ -44,11 +41,10 @@ char *promise_all[] = {
 	"audio", "video", "bpf", "unveil"
 };
 
-char *promise_error = "error";
+const char *promise_error = "error";
 char *execpromises;
 int nvices = 0;
 char **vices;
-char fullbin[PATH_MAX];
 int use_error = 0;
 
 static const char optstr[]	= "+elv:";
@@ -60,7 +56,7 @@ static struct option longopts[]	= {
 };
 
 void usage(char *self) {
-	printf("%s [-v vice[,vice,...]] [--] program [flags ...]\n", self);
+	printf("%s [-le] [-v vice[,vice,...]] binary [flags ...]\n", self);
 	exit(0);
 }
 
@@ -80,28 +76,12 @@ int is_string_in_array(char *str, size_t max_str, char **arr, size_t arr_len) {
 	return FAIL;
 }
 
-char *path_lookup(char *bin, char *pathstring) {
-	char *dir;
-
-	while ((dir = strsep(&pathstring, ":")) != NULL) {
-		if (*dir != '\0') {
-			if (snprintf(fullbin, sizeof(fullbin), "%s/%s", dir, bin) < 0)
-				errx(-1, NULL);
-			if (access(fullbin, X_OK) == 0)
-				return fullbin;
-		}
-	}
-	return NULL;
-}
-
 void run(int argc, char **argv) {
+	const char *executable = *argv;
 	char *promise;
-	char *executable;
-	char *path_executable;
-	char *pathstring;
 
 	for (int i = 0; i < nvices; i++) {
-		if (is_string_in_array(vices[i], MAX_PROMISE_LENGTH, promise_all,
+		if (is_string_in_array(vices[i], MAX_PROMISE_LENGTH, (char**)promise_all,
 		                       sizeof(promise_all) / sizeof(promise_all[0])) == FAIL) {
 			errx(-1, "invalid vice: %s", vices[i]);
 		}
@@ -111,7 +91,7 @@ void run(int argc, char **argv) {
 		errx(-1, NULL);
 
 	for (int i = 0; i < sizeof(promise_all) / sizeof(promise_all[0]); i++) {
-		promise = promise_all[i];
+		promise = (char*)promise_all[i];
 		if (is_string_in_array(promise, sizeof(promise), vices, MAX_PROMISE_LENGTH) == FAIL) {
 			if (*execpromises == '\0') {
 				if (strlcpy(execpromises, promise, sizeof(execpromises)) > sizeof(execpromises))
@@ -126,19 +106,7 @@ void run(int argc, char **argv) {
 			errx(-1, NULL);
 	}
 
-	executable = *argv;
-
-	/* get absolute path of executable */
-	if(access(executable, X_OK) == 0) {
-		path_executable = executable;
-	} else {
-		if ((pathstring = getenv("PATH")) == NULL)
-			errx(-1, NULL);
-		if ((path_executable = path_lookup(executable, pathstring)) == NULL)
-		    errx(-1, "no executable `%s' in PATH", executable);
-	}
-
-	printf("executing `%s' ", path_executable);
+	printf("executing `%s' ", executable);
 	if (argc > 1) {
 		printf("with arguments: `");
 		for (int i = 1; i < argc; i++)
@@ -148,10 +116,8 @@ void run(int argc, char **argv) {
 	printf("with the following execpromises: \%s\n\n", execpromises);
 	if (pledge(NULL, execpromises) == -1)
 		errx(-1, "unable to pledge: %s(%d)", strerror(errno), errno);
-	if (execve(path_executable, argv, environ) == -1)
-		errx(-1, "unable to execute `%s': %s(%d)", path_executable, strerror(errno), errno);
-
-	exit(0);
+	if (execvp(executable, argv) == -1)
+		errx(-1, "unable to execute `%s': %s(%d)", executable, strerror(errno), errno);
 }
 
 int main(int argc, char** argv) {
