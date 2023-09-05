@@ -10,7 +10,7 @@ promises
 
 **abstain&nbsp;\[**-le**]**
 \[**-v**&nbsp;*vice\[,vice,...]*]
-*binary*&nbsp;\[*flags*&nbsp;*...*]
+*binary*&nbsp;\[*arguments*&nbsp;*...*]
 
 # DESCRIPTION
 
@@ -19,7 +19,7 @@ The
 utility executes
 *binary*
 with
-*flags*
+*arguments*
 using
 pledge(2)
 *execpromises*.
@@ -65,7 +65,8 @@ The main use case that
 **abstain**
 is designed for is to gather empirical behavioral data on software, for specific types of syscalls, bulding on
 pledge(2)
-syscall groups. Ideally, this is combined with source code review and a study of kernel trace logs
+*promise*
+sets. Ideally, this is combined with source code review and a study of kernel trace logs
 (see
 ktrace(1))
 .
@@ -73,7 +74,7 @@ ktrace(1))
 # EXAMPLES
 
 Execute
-*hello\_world*
+*binary*
 with
 *arguments*,
 prohibiting access to the syscalls of the
@@ -86,23 +87,23 @@ pledge(2)
 for details)
 :
 
-	$ abstain -v wpath,cpath ./hello_world arguments
+	$ abstain -v wpath,cpath binary arguments
 
 # EXIT STATUS
 
 As
 **abstain**
 calls
-execve(2),
+execvp(3),
 it has no process to return to. If any error occurs prior to or when calling
-execve(2),
+execvp(3),
 **abstain**
 will return -1.
 
 # SEE ALSO
 
 pledge(2)
-execve(2)
+execvp(3)
 unveilro(1)
 
 # AUTHORS

@@ -9,14 +9,14 @@ promises
 .Sh SYNOPSIS
 .Nm abstain Op Fl le
 .Op Fl v Ar vice[,vice,...]
-.Ar binary Op Ar flags Ar ...
+.Ar binary Op Ar arguments Ar ...
 .Sh DESCRIPTION
 The
 .Nm
 utility executes
 .Ar binary
 with
-.Ar flags
+.Ar arguments
 using
 .Xr pledge 2
 .Em execpromises .
@@ -62,14 +62,15 @@ The main use case that
 .Nm
 is designed for is to gather empirical behavioral data on software, for specific types of syscalls, bulding on
 .Xr pledge 2
-syscall groups. Ideally, this is combined with source code review and a study of kernel trace logs
+.Em promise
+sets. Ideally, this is combined with source code review and a study of kernel trace logs
 .Po
 see
 .Xr ktrace 1
 .Pc .
 .Sh EXAMPLES
 Execute
-.Pa hello_world
+.Pa binary
 with
 .Ar arguments ,
 prohibiting access to the syscalls of the
@@ -82,19 +83,19 @@ groups
 for details
 .Pc :
 .Bd -literal -offset indent
-$ abstain -v wpath,cpath ./hello_world arguments
+$ abstain -v wpath,cpath binary arguments
 .Sh EXIT STATUS
 As
 .Nm
 calls
-.Xr execve 2 ,
+.Xr execvp 3 ,
 it has no process to return to. If any error occurs prior to or when calling
-.Xr execve 2 ,
+.Xr execvp 3 ,
 .Nm
 will return -1.
 .Sh SEE ALSO
 .Xr pledge 2
-.Xr execve 2
+.Xr execvp 3
 .Xr unveilro 1
 .Sh AUTHORS
 .An -nosplit
