@@ -49,11 +49,13 @@ char *execpromises;
 int nvices = 0;
 char **vices;
 char fullbin[PATH_MAX];
+int use_error = 0;
 
-static const char optstr[]	= "+lv:";
+static const char optstr[]	= "+elv:";
 static struct option longopts[]	= {
 	{ "list",	no_argument,		NULL,	'l'	},
 	{ "vices",	required_argument,	NULL,	'v'	},
+	{ "error",	no_argument,		NULL,	'e'	},
 	{ NULL,		0,			NULL,	0	}
 };
 
@@ -105,20 +107,23 @@ void run(int argc, char **argv) {
 		}
 	}
 
-	if ((execpromises = malloc(STR_MAX)) == NULL)
-		errx(-1, NULL);
-	if (strlcpy(execpromises, promise_error, sizeof(execpromises)) > sizeof(execpromises))
+	if ((execpromises = calloc(STR_MAX, sizeof(char))) == NULL)
 		errx(-1, NULL);
 
 	for (int i = 0; i < sizeof(promise_all) / sizeof(promise_all[0]); i++) {
 		promise = promise_all[i];
 		if (is_string_in_array(promise, sizeof(promise), vices, MAX_PROMISE_LENGTH) == FAIL) {
+			if (*execpromises == '\0') {
+				if (strlcpy(execpromises, promise, sizeof(execpromises)) > sizeof(execpromises))
+					errx(-1, NULL);
+			}
 			if (snprintf(execpromises, STR_MAX, "%s %s", execpromises, promise) < 0)
 				errx(-1, NULL);
 		}
 	}
-	if (execpromises[0] == ' ') {
-		execpromises++;	/* remove initial whitespace */
+	if (use_error) {
+		if (snprintf(execpromises, STR_MAX, "%s %s", execpromises, promise_error) < 0) 
+			errx(-1, NULL);
 	}
 
 	executable = *argv;
@@ -160,6 +165,9 @@ int main(int argc, char** argv) {
 
 	while ((ch = getopt_long(argc, argv, optstr, longopts, NULL)) != -1) {
 		switch (ch) {
+		case 'e':
+			use_error = 1;
+			break;
 		case 'l':
 			list_promises();
 			break;

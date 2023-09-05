@@ -7,7 +7,7 @@
 .Xr pledge 2
 promises
 .Sh SYNOPSIS
-.Nm abstain Op Fl l
+.Nm abstain Op Fl le
 .Op Fl v Ar vice[,vice,...]
 .Ar binary Op Ar flags Ar ...
 .Sh DESCRIPTION
@@ -20,29 +20,53 @@ with
 using
 .Xr pledge 2
 .Em execpromises .
-By default, it will do so with all possible
+By default, it will do so with all
 .Em execpromises
-included. Specifying
+allowed.
+.Pp
+Specify
 .Ar vices
 with
 .Fl v
-removes those from the
-.Em execpromises ,
-thereby restricting the allowed syscalls for the
-.Ar binary .
-Multiple
-.Ar vices
-can be specified separated by commas.
+in a comma-separated list.
+They represent the exact same concept as
+.Em promises
+in
+.Xr pledge 2 ,
+except that their effect is the reverse - they
+prohibit
+access to syscalls by removing the corresponding
+.Xr pledge 2
+.Em promise
+from the
+.Em execpromises .
+.Pp
+The
+.Fl e
+flag adds the
+.Sq error
+.Em promise
+.Pq which is not included by default
+so that a violation will lead to
+.Dv ENOSYS
+instead of
+.Dv SIGABRT .
+.Pp
 The
 .Fl l
 flag prints all possible
 .Ar vices
 to the standard output.
 .Pp
+The main use case that
 .Nm
-always runs with the
-.Sq error
-promise.
+is designed for is to gather empirical behavioral data on software, for specific types of syscalls, bulding on
+.Xr pledge 2
+syscall groups. Ideally, this is combined with source code review and a study of kernel trace logs
+.Po
+see
+.Xr ktrace 1
+.Pc .
 .Sh EXAMPLES
 Execute
 .Pa hello_world
@@ -76,13 +100,27 @@ will return -1.
 .An -nosplit
 .An Thomas Frohwein Aq Mt thfr@openbsd.org
 .Sh CAVEATS
+Avoid relying on this to restrain your programs. The use of
+.Xr pledge 2
+in the program is a superior option wherever feasible. The main use case may be experimental or educational.
+.Pp
 Some system calls when allowed still have restrictions applied to them. Refer to
 .Xr pledge 2
 for details.
 .Pp
-The default of running with
+Programs violating their
+.Xr pledge 2
+restrictions by invoking syscalls from one of the
+.Ar vices
+are killed with uncatchable
+.Dv SIGABRT .
+.Pp
+When running with
+.Fl e ,
+the
 .Sq error
-promise comes with risk that the program can enter inconsistent state, especially
+.Em promise
+comes with risk that the program can enter inconsistent state, especially
 .Xr setuid 2
 or
 .Xr setgid 2
