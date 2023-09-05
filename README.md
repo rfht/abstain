@@ -121,6 +121,16 @@ modification inside the program source is a superior option wherever feasible. T
 pledge(2),
 or educational to understand the breadth of syscall use.
 
+The usefulness for programs that already use
+pledge(2)
+is very limited. At best, earlier uses of
+pledge(2)
+can be identified. If
+**abstain**
+removes promises that the program uses, this will lead to an error. Depending on the program's error handling, this could cause an inconsistent state or potentially a failure to invoke a reduction in other
+pledge(2)
+promises.
+
 Some system calls when allowed still have restrictions applied to them. Refer to
 pledge(2)
 for details.
