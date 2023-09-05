@@ -8,9 +8,10 @@ promises
 
 # SYNOPSIS
 
-**abstain**
+**abstain&nbsp;\[**-l**]**
 \[**-v**&nbsp;*vice\[,vice,...]*]
-\[**--**&nbsp;*command*&nbsp;*commandflags*]
+\[**--**]
+*binary*&nbsp;\[*flags*&nbsp;*...*]
 
 # DESCRIPTION
 
