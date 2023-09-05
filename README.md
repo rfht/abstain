@@ -106,6 +106,24 @@ instead of
 	video: VIDIOC_QUERYCAP: Function not implemented
 	video: ioctl STREAMOFF: Function not implemented
 
+Prohibit network access, for example to assess if a build system truly runs in offline mode:
+
+	$ abstain -v inet make
+	...
+	curl https://example.com/ -o /tmp/example.com.html
+	Abort trap (core dumped)
+	*** Error 134 in /tmp (Makefile:2 'all')
+
+Same with
+**-e**:
+
+	$ abstain -ev inet make
+	...
+	curl https://example.com/ -o /tmp/example.com.html
+	...
+	curl: (7) Failed to connect to example.com port 443 after 23 ms: Couldn't connect to server
+	*** Error 7 in /tmp (Makefile:2 'all')
+
 Using
 **abstain**
 with a program that already calls
