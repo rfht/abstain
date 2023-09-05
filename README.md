@@ -10,7 +10,7 @@ promises for program execution
 
 **abstain**
 \[**-le**]
-\[**-v**&nbsp;*vice\[,vice,...]*]
+\[**-v**&nbsp;*vice*\[*,vice,...*]]
 *binary*&nbsp;\[*arguments*&nbsp;*...*]
 
 # DESCRIPTION
