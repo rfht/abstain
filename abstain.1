@@ -70,21 +70,58 @@ see
 .Xr ktrace 1
 .Pc .
 .Sh EXAMPLES
-Execute
-.Pa binary
-with
-.Ar arguments ,
-prohibiting access to the syscalls of the
-.Sq wpath
-and
-.Sq cpath
-groups
-.Po see
-.Xr pledge 2
-for details
-.Pc :
+Prohibit file system modification:
 .Bd -literal -offset indent
-$ abstain -v wpath,cpath binary arguments
+$ abstain -v wpath,cpath,dpath,fattr,chown binary arguments
+.Ed
+.Pp
+If you run with
+.Ar kern.audio.record
+and/or
+.Ar kern.video.record
+enabled
+.Po
+see
+.Xr sysctl 8 ,
+not recommended as default
+.Pc ,
+you can selectively prohibit audio/video access, here with
+.Xr video 1 :
+.Bd -literal -offset indent
+$ abstain -v audio,video video
+\&...
+Abort trap (core dumped)
+.Ed
+.Pp
+Use
+.Fl e
+so that the program will receive
+.Dv ENOSYS
+instead of
+.Dv SIGABRT:
+.Bd -literal -offset indent
+$ abstain -ev audio,video video
+\&...
+video: VIDIOC_QUERYCAP: Function not implemented
+video: ioctl STREAMOFF: Function not implemented
+.Ed
+.Pp
+Using
+.Nm
+with a program that already calls
+.Xr pledge 2
+returns an error:
+.Bd -literal -offset indent
+$ abstain -v cpath touch /tmp/test
+\&...
+touch: pledge: Operation not permitted
+$ file /tmp/test
+/tmp/test: cannot stat '/tmp/test' (No such file or directory)
+.Ed
+.Pp
+It's the program's responsibility to handle
+.Xr pledge 2
+errors.
 .Sh EXIT STATUS
 As
 .Nm

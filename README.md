@@ -74,21 +74,53 @@ ktrace(1))
 
 # EXAMPLES
 
-Execute
-*binary*
-with
-*arguments*,
-prohibiting access to the syscalls of the
-'wpath'
-and
-'cpath'
-groups
-(see
-pledge(2)
-for details)
-:
+Prohibit file system modification:
 
-	$ abstain -v wpath,cpath binary arguments
+	$ abstain -v wpath,cpath,dpath,fattr,chown binary arguments
+
+If you run with
+*kern.audio.record*
+and/or
+*kern.video.record*
+enabled
+(see
+sysctl(8),
+not recommended as default)
+,
+you can selectively prohibit audio/video access, here with
+video(1):
+
+	$ abstain -v audio,video video
+	...
+	Abort trap (core dumped)
+
+Use
+**-e**
+so that the program will receive
+`ENOSYS`
+instead of
+`SIGABRT:`
+
+	$ abstain -ev audio,video video
+	...
+	video: VIDIOC_QUERYCAP: Function not implemented
+	video: ioctl STREAMOFF: Function not implemented
+
+Using
+**abstain**
+with a program that already calls
+pledge(2)
+returns an error:
+
+	$ abstain -v cpath touch /tmp/test
+	...
+	touch: pledge: Operation not permitted
+	$ file /tmp/test
+	/tmp/test: cannot stat '/tmp/test' (No such file or directory)
+
+It's the program's responsibility to handle
+pledge(2)
+errors.
 
 # EXIT STATUS
 
@@ -153,4 +185,4 @@ or
 setgid(2)
 programs.
 
-OpenBSD 7.3 - September 4, 2023
+OpenBSD 7.3 - September 5, 2023
