@@ -9,19 +9,81 @@ promises
 .Sh SYNOPSIS
 .Nm abstain Op Fl l
 .Op Fl v Ar vice[,vice,...]
-.Op Fl -
 .Ar binary Op Ar flags Ar ...
 .Sh DESCRIPTION
 The
 .Nm
-utility ...
+utility executes
+.Ar binary
+with
+.Ar flags
+using
+.Xr pledge 2
+.Em execpromises .
+By default, it will do so with all possible
+.Em execpromises
+included. Specifying
+.Ar vices
+with
+.Fl v
+removes those from the
+.Em execpromises ,
+thereby restricting the allowed syscalls for the
+.Ar binary .
+Multiple
+.Ar vices
+can be specified separated by commas.
+The
+.Fl l
+flag prints all possible
+.Ar vices
+to the standard output.
+.Pp
+.Nm
+always runs with the
+.Sq error
+promise.
 .Sh EXAMPLES
+Execute
+.Pa hello_world
+with
+.Ar arguments ,
+prohibiting access to the syscalls of the
+.Sq wpath
+and
+.Sq cpath
+groups
+.Po see
+.Xr pledge 2
+for details
+.Pc :
+.Bd -literal -offset indent
+$ abstain -v wpath,cpath ./hello_world arguments
 .Sh EXIT STATUS
+As
+.Nm
+calls
+.Xr execve 2 ,
+it has no process to return to. If any error occurs prior to or when calling
+.Xr execve 2 ,
+.Nm
+will return -1.
 .Sh SEE ALSO
 .Xr pledge 2
+.Xr execve 2
 .Xr unveilro 1
-.Sh CAVEATS
-\&...
 .Sh AUTHORS
 .An -nosplit
 .An Thomas Frohwein Aq Mt thfr@openbsd.org
+.Sh CAVEATS
+Some system calls when allowed still have restrictions applied to them. Refer to
+.Xr pledge 2
+for details.
+.Pp
+The default of running with
+.Sq error
+promise comes with risk that the program can enter inconsistent state, especially
+.Xr setuid 2
+or
+.Xr setgid 2
+programs.
