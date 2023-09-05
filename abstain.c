@@ -30,7 +30,7 @@
 #define FAIL			-1
 
 /* don't include error promise here because it is pledged by default */
-const char *promise_all[] = {
+char *promise_all[] = {
 	"stdio", "rpath", "wpath", "cpath",
 	"dpath", "tmppath", "inet", "mcast",
 	"fattr", "chown", "flock", "unix",
@@ -81,7 +81,7 @@ void run(int argc, char **argv) {
 	char *promise;
 
 	for (int i = 0; i < nvices; i++) {
-		if (is_string_in_array(vices[i], MAX_PROMISE_LENGTH, (char**)promise_all,
+		if (is_string_in_array(vices[i], MAX_PROMISE_LENGTH, promise_all,
 		                       sizeof(promise_all) / sizeof(promise_all[0])) == FAIL) {
 			errx(-1, "invalid vice: %s", vices[i]);
 		}
@@ -91,7 +91,7 @@ void run(int argc, char **argv) {
 		errx(-1, NULL);
 
 	for (int i = 0; i < sizeof(promise_all) / sizeof(promise_all[0]); i++) {
-		promise = (char*)promise_all[i];
+		promise = promise_all[i];
 		if (is_string_in_array(promise, sizeof(promise), vices, MAX_PROMISE_LENGTH) == FAIL) {
 			if (*execpromises == '\0') {
 				if (strlcpy(execpromises, promise, sizeof(execpromises)) > sizeof(execpromises))
