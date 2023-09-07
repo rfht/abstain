@@ -94,8 +94,12 @@ void run(int argc, char **argv) {
 				if (strlcpy(execpromises, promise, sizeof(execpromises)) > sizeof(execpromises))
 					errx(-1, NULL);
 			}
-			if (snprintf(execpromises, sizeof(execpromises), "%s %s", execpromises, promise) < 0)
-				errx(-1, NULL);
+			else if ((strnlen(execpromises, sizeof(execpromises)) >=
+			          strnlen(promise, sizeof(promise))) &&
+			         (strstr(execpromises, promise) == NULL)) {
+				if (snprintf(execpromises, sizeof(execpromises), "%s %s", execpromises, promise) < 0)
+					errx(-1, NULL);
+			}
 		}
 	}
 	if (use_error) {
