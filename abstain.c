@@ -79,17 +79,18 @@ int is_string_in_array(char *str, size_t max_str, char **arr, size_t arr_len) {
 void run(int argc, char **argv) {
 	const char *executable = *argv;
 	char *promise;
+	size_t npromises = sizeof(promise_all) / sizeof(promise_all[0]);
 
 	for (int i = 0; i < nvices; i++) {
 		if (is_string_in_array(vices[i], MAX_PROMISE_LENGTH, promise_all,
-		                       sizeof(promise_all) / sizeof(promise_all[0])) == FAIL) {
+		                       npromises) == FAIL) {
 			errx(-1, "invalid vice: %s", vices[i]);
 		}
 	}
 
-	for (int i = 0; i < sizeof(promise_all) / sizeof(promise_all[0]); i++) {
+	for (int i = 0; i < npromises; i++) {
 		promise = promise_all[i];
-		if (is_string_in_array(promise, sizeof(promise), vices, MAX_PROMISE_LENGTH) == FAIL) {
+		if (is_string_in_array(promise, sizeof(promise), vices, MAX_VICES) == FAIL) {
 			if (*execpromises == '\0') {
 				if (strlcpy(execpromises, promise, sizeof(execpromises)) > sizeof(execpromises))
 					errx(-1, NULL);
