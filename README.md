@@ -156,7 +156,8 @@ As
 **abstain**
 calls
 execvp(3),
-it has no process to return to. If any error occurs prior to
+it has no process to return to.
+If any error occurs prior to
 execvp(3),
 **abstain**
 will return -1.
@@ -180,7 +181,8 @@ the restrictions are applied to the entire program invoked by
 execvp(3),
 including future processes spawned by other calls to
 execve(2)
-and related syscalls. The only way to apply more fine-grained
+and related syscalls.
+The only way to apply more fine-grained
 pledge(2)
 is direct source modification of the program in question.
 
@@ -190,7 +192,8 @@ with
 *promises*
 prohibited by
 **abstain**,
-this will lead to an error. Depending on the program's error handling, this could cause an inconsistent state and potentially a failure to invoke a reduction in other
+this will lead to an error.
+Depending on the program's error handling, this could cause an inconsistent state and potentially a failure to invoke a reduction in other
 pledge(2)
 promises.
 
@@ -198,4 +201,4 @@ Use of
 **-e**
 can lead to an inconsistent state of the program and therefore should be used judiciously.
 
-OpenBSD 7.3 - September 7, 2023
+OpenBSD 7.3 - September 8, 2023
