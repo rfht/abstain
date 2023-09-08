@@ -86,7 +86,7 @@ void run(int argc, char **argv) {
 	for (int i = 0; i < npromises; i++) {
 		if (is_string_in_array(promises[i], MAX_PROMISE_LENGTH, promise_all,
 		                       npromise_all) == FAIL) {
-			errx(-1, "invalid vice: %s", promises[i]);
+			errx(-1, "invalid promise: %s", promises[i]);
 		}
 	}
 
