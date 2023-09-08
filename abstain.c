@@ -23,8 +23,9 @@
 #include <unistd.h>
 
 #define STR_MAX			1024
-#define MAX_PROMISE_LENGTH	16	/* max string length of promises */
+#define MAX_PROMISE_LENGTH	11	/* max string length of promises */
 #define MAX_PROMISES		64
+#define MAX_COLS		72
 
 #define OK			0
 #define FAIL			-1
@@ -63,10 +64,18 @@ void usage(char *self) {
 }
 
 void list_promises() {
+	int r;
 	size_t npromise_all = sizeof(promise_all) / sizeof(promise_all[0]);
-	for (int i = 0; i < npromise_all; i++) {
-		printf("%s\n", promise_all[i]);
+	for (int i = 0, line_len = 0; i < npromise_all; i++) {
+		r = printf("%-12s", promise_all[i]);
+		if (r < 0)
+			err(-1, "printf");
+		if ((line_len = line_len + r) + 12 > MAX_COLS) {
+			printf("\n");
+			line_len = 0;
+		}
 	}
+	printf("\n");
 	exit(0);
 }
 
