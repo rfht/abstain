@@ -24,7 +24,7 @@
 
 #define STR_MAX			1024
 #define MAX_PROMISE_LENGTH	16	/* max string length of promises */
-#define MAX_VICES		64
+#define MAX_PROMISES		64
 
 #define OK			0
 #define FAIL			-1
@@ -43,26 +43,28 @@ char *promise_all[] = {
 
 const char *promise_error = "error";
 char execpromises[STR_MAX] = "\0";
-int nvices = 0;
-char **vices;
+int npromises = 0;
+char **promises;
 int use_error = 0;
+int verbosity = 0;
 
-static const char optstr[]	= "+elv:";
+static const char optstr[]	= "+elp:v";
 static struct option longopts[]	= {
-	{ "list",	no_argument,		NULL,	'l'	},
-	{ "vices",	required_argument,	NULL,	'v'	},
 	{ "error",	no_argument,		NULL,	'e'	},
+	{ "list",	no_argument,		NULL,	'l'	},
+	{ "promise",	required_argument,	NULL,	'p'	},
+	{ "verbose",	no_argument,		NULL,	'v'	},
 	{ NULL,		0,			NULL,	0	}
 };
 
 void usage(char *self) {
-	printf("%s [-le] [-v vice[,vice,...]] binary [flags ...]\n", self);
+	printf("%s [-lev] [-p promise[,promise,...]] binary [flags ...]\n", self);
 	exit(0);
 }
 
 void list_promises() {
-	size_t npromises = sizeof(promise_all) / sizeof(promise_all[0]);
-	for (int i = 0; i < npromises; i++) {
+	size_t npromise_all = sizeof(promise_all) / sizeof(promise_all[0]);
+	for (int i = 0; i < npromise_all; i++) {
 		printf("%s\n", promise_all[i]);
 	}
 	exit(0);
@@ -79,18 +81,18 @@ int is_string_in_array(char *str, size_t max_str, char **arr, size_t arr_len) {
 void run(int argc, char **argv) {
 	const char *executable = *argv;
 	char *promise;
-	size_t npromises = sizeof(promise_all) / sizeof(promise_all[0]);
+	size_t npromise_all = sizeof(promise_all) / sizeof(promise_all[0]);
 
-	for (int i = 0; i < nvices; i++) {
-		if (is_string_in_array(vices[i], MAX_PROMISE_LENGTH, promise_all,
-		                       npromises) == FAIL) {
-			errx(-1, "invalid vice: %s", vices[i]);
+	for (int i = 0; i < npromises; i++) {
+		if (is_string_in_array(promises[i], MAX_PROMISE_LENGTH, promise_all,
+		                       npromise_all) == FAIL) {
+			errx(-1, "invalid vice: %s", promises[i]);
 		}
 	}
 
-	for (int i = 0; i < npromises; i++) {
+	for (int i = 0; i < npromise_all; i++) {
 		promise = promise_all[i];
-		if (is_string_in_array(promise, sizeof(promise), vices, MAX_VICES) == FAIL) {
+		if (is_string_in_array(promise, sizeof(promise), promises, MAX_PROMISES) == FAIL) {
 			if (*execpromises == '\0') {
 				if (strlcpy(execpromises, promise, sizeof(execpromises)) > sizeof(execpromises))
 					errx(-1, NULL);
@@ -108,13 +110,16 @@ void run(int argc, char **argv) {
 			errx(-1, NULL);
 	}
 
-	printf("executing:\t`%s", executable);
-	if (argc > 1) {
-		for (int i = 1; i < argc; i++)
-			printf(" %s", argv[i]);
+	if (verbosity) {
+		printf("executing:\t`%s", executable);
+		if (argc > 1) {
+			for (int i = 1; i < argc; i++)
+				printf(" %s", argv[i]);
+		}
+		printf("'\n");
+		printf("execpromises:\t%s\n\n", execpromises);
 	}
-	printf("'\n");
-	printf("execpromises:\t%s\n\n", execpromises);
+
 	if (pledge(NULL, execpromises) == -1)
 		errx(-1, "unable to pledge: %s(%d)", strerror(errno), errno);
 	if (execvp(executable, argv) == -1)
@@ -124,10 +129,9 @@ void run(int argc, char **argv) {
 int main(int argc, char** argv) {
 	int ch;
 	char *self = argv[0];
-	char *v;
-	char *vices_string = "\0";
+	char *p;
 
-	if ((vices = calloc(MAX_VICES, MAX_PROMISE_LENGTH)) == NULL)
+	if ((promises = calloc(MAX_PROMISES, MAX_PROMISE_LENGTH)) == NULL)
 	    errx(-1, NULL);
 
 	while ((ch = getopt_long(argc, argv, optstr, longopts, NULL)) != -1) {
@@ -138,8 +142,14 @@ int main(int argc, char** argv) {
 		case 'l':
 			list_promises();
 			break;
+		case 'p':
+			while ((p = strsep(&optarg, ",")) != NULL) {
+				if (*p != '\0')
+					promises[npromises++] = p;
+			}
+			break;
 		case 'v':
-			vices_string = optarg;
+			verbosity = 1;
 			break;
 		default:
 			usage(self);
@@ -147,11 +157,6 @@ int main(int argc, char** argv) {
 	}
 	argc -= optind;
 	argv += optind;
-
-	while ((v = strsep(&vices_string, ",")) != NULL) {
-		if (*v != '\0')
-			vices[nvices++] = v;
-	}
 
 	if (argc < 1)
 		usage(self);

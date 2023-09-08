@@ -8,71 +8,90 @@
 promises for program execution
 .Sh SYNOPSIS
 .Nm abstain
-.Op Fl le
-.Op Fl v Ar vice Ns Op Ar ,vice,...
+.Op Fl lev
+.Op Fl p Ar promise Ns Op Ar ,promise,...
+.Op Fl p Ar promise Ns Op Ar ,promise,...
 .Ar binary Op Ar arguments Ar ...
 .Sh DESCRIPTION
 The
 .Nm
-utility executes
+utility executes a
 .Ar binary
 with
+.Pq optional
 .Ar arguments
 using
 .Xr pledge 2
 .Em execpromises .
-By default, it will do so with all
-.Em execpromises
-allowed.
-.Pp
-Specify
-.Ar vices
-with
-.Fl v
-in a comma-separated list.
-They represent the exact same concept as
-.Em promises
-in
-.Xr pledge 2 ,
-except that their effect is the reverse - they
-prohibit
-access to syscalls by removing the corresponding
+Unlike
+.Xr pledge 2 Ns 's
+syntax of specifying arguments for
+.Em addition ,
+.Nm Ns 's
+.Ar promises
+are listed for
+.Em subtraction .
+This means that without any
+.Fl p
+.Ar promises ,
+the maximal number of
 .Xr pledge 2
-.Em promise
-from the
-.Em execpromises .
+.Ar promises
+are permitted.
+.Po
+This doesn't mean that no restrictions are imposed by
+.Xr pledge 2 .
+.Pc
+To disallow
+.Ar promises ,
+specify them with
+.Fl p
+in a comma-separated list and/or with multiple
+.Fl p
+arguments.
+.Pp
+.Nm
+imposes a
+.Xr pledge 2
+.Em promise set
+on the application
+.Em as a whole .
+Depending on the nature of the application, it could fail to launch or abort execution at a later stage when a
+.Xr pledge 2
+violation occurs.
+.Pp
+Due to the nature of
+.Em execpromises ,
+the restrictions will propagate to children of the application and new processes spawned by
+.Xr execve 2
+.Po
+see the
+.Xr make 1
+example below
+.Pc .
 .Pp
 The
-.Fl e
-flag adds the
 .Sq error
-.Em promise
-.Pq which is not included by default
-so that a violation will lead to
-.Dv ENOSYS
-instead of
-.Dv SIGABRT .
+.Ar promise
+is disabled by default, but can be added with
+.Fl e .
 .Pp
 The
 .Fl l
 flag prints all possible
-.Ar vices
+.Ar promises
 to the standard output.
 .Pp
-The main use case that
-.Nm
-is designed for is to gather empirical behavioral data on software for specific types of syscalls, building on
-.Xr pledge 2
-.Em promise
-sets. Ideally, this is part of a comprehensive investigation that includes source code review and a study of kernel trace logs
-.Po
-see
-.Xr ktrace 1
-.Pc .
+Use
+.Fl v
+to display the command passed to
+.Xr execvp 3
+and the
+.Em execpromises .
 .Sh EXAMPLES
 Prohibit file system modification:
 .Bd -literal -offset indent
-$ abstain -v wpath,cpath,dpath,fattr,chown binary arguments
+$ abstain -p wpath,cpath,dpath,fattr,chown binary arguments
 .Ed
 .Pp
 If you run with
@@ -88,8 +107,7 @@ not recommended as default
 you can selectively prohibit audio/video access, here with
 .Xr video 1 :
 .Bd -literal -offset indent
-$ abstain -v audio,video video
-\&...
+$ abstain -p audio,video video
 Abort trap (core dumped)
 .Ed
 .Pp
@@ -100,54 +118,49 @@ so that the program will receive
 instead of
 .Dv SIGABRT:
 .Bd -literal -offset indent
-$ abstain -ev audio,video video
-\&...
+$ abstain -ep audio,video video
 video: VIDIOC_QUERYCAP: Function not implemented
 video: ioctl STREAMOFF: Function not implemented
 .Ed
 .Pp
 Prohibit network access, for example to assess if a build system truly runs in offline mode:
 .Bd -literal -offset indent
-$ abstain -v inet make
-\&...
+$ abstain -p inet make
 curl https://example.com/ -o /tmp/example.com.html
 Abort trap (core dumped)
 *** Error 134 in /tmp (Makefile:2 'all')
 .Ed
 .Pp
-Same with
+And now with
 .Fl e :
 .Bd -literal -offset indent
-$ abstain -ev inet make
-\&...
+$ abstain -ep inet make
 curl https://example.com/ -o /tmp/example.com.html
 \&...
-curl: (7) Failed to connect to example.com port 443 after 23 ms: Couldn't connect to server
+curl: (7) Failed to connect to example.com port [...]
 *** Error 7 in /tmp (Makefile:2 'all')
 .Ed
 .Pp
-Using
+If
 .Nm
-with a program that already calls
+encounters a less restrictive
 .Xr pledge 2
-returns an error:
+call,
+an error is thrown by
+.Xr pledge 2
+that needs to be handled by the calling program:
 .Bd -literal -offset indent
-$ abstain -v cpath touch /tmp/test
-\&...
+$ abstain -p cpath touch /tmp/test
 touch: pledge: Operation not permitted
 $ file /tmp/test
 /tmp/test: cannot stat '/tmp/test' (No such file or directory)
 .Ed
-.Pp
-It's the program's responsibility to handle
-.Xr pledge 2
-errors.
 .Sh EXIT STATUS
 As
 .Nm
 calls
 .Xr execvp 3 ,
-it has no process to return to. If any error occurs prior to or when calling
+it has no process to return to. If any error occurs prior to
 .Xr execvp 3 ,
 .Nm
 will return -1.
@@ -159,42 +172,27 @@ will return -1.
 .An -nosplit
 .An Thomas Frohwein Aq Mt thfr@openbsd.org
 .Sh CAVEATS
-Avoid relying on
-.Nm
-to restrain your programs. The use of
+Due to the nature of
 .Xr pledge 2
-modification inside the program source is a superior option wherever feasible. The intended use cases are investigation of external program behavior as part of a development process to add more robust restriction with
-.Xr pledge 2 ,
-or educational to understand the breadth of syscall use.
+.Em execpromises ,
+the restrictions are applied to the entire program invoked by
+.Xr execvp 3 ,
+including future processes spawned by other calls to
+.Xr execve 2
+and related syscalls. The only way to apply more fine-grained
+.Xr pledge 2
+is direct source modification of the program in question.
 .Pp
-The usefulness for programs that already use
+If a program calls
 .Xr pledge 2
-is very limited. At best, earlier uses of
-.Xr pledge 2
-can be identified. If
-.Nm
-removes promises that the program uses, this will lead to an error. Depending on the program's error handling, this could cause an inconsistent state or potentially a failure to invoke a reduction in other
+with
+.Ar promises
+prohibited by
+.Nm ,
+this will lead to an error. Depending on the program's error handling, this could cause an inconsistent state and potentially a failure to invoke a reduction in other
 .Xr pledge 2
 promises.
 .Pp
-Some system calls when allowed still have restrictions applied to them. Refer to
-.Xr pledge 2
-for details.
-.Pp
-Programs violating their
-.Xr pledge 2
-restrictions by invoking syscalls from one of the
-.Ar vices
-are killed with uncatchable
-.Dv SIGABRT .
-.Pp
-When running with
-.Fl e ,
-the
-.Sq error
-.Em promise
-comes with risk that the program can enter inconsistent state, especially
-.Xr setuid 2
-or
-.Xr setgid 2
-programs.
+Use of
+.Fl e
+can lead to an inconsistent state of the program and therefore should be used judiciously.
