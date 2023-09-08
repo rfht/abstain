@@ -16,9 +16,8 @@ promises for program execution
 
 # DESCRIPTION
 
-The
 **abstain**
-utility executes a
+executes a
 *binary*
 with
 (optional)
@@ -26,9 +25,21 @@ with
 using
 pledge(2)
 *execpromises*.
-By default, it will do so with all
+Unlike
+pledge(2)'s
+syntax of specifying arguments for
+*addition*,
+**abstain**'s
 *promises*
-allowed.
+are listed for
+*subtraction*.
+This means that without any
+**-p**
+*promises*,
+the maximal number of
+pledge(2)
+*promises*
+are permitted.
 (This doesn't mean that no restrictions are imposed by
 pledge(2).)
 To disallow
@@ -38,6 +49,25 @@ specify them with
 in a comma-separated list and/or with multiple
 **-p**
 arguments.
+
+**abstain**
+imposes a
+pledge(2)
+*promise set*
+on the application
+*as a whole*.
+Depending on the nature of the application, it could fail to launch or abort execution at a later stage when a
+pledge(2)
+violation occurs.
+
+Due to the nature of
+*execpromises*,
+the restrictions will propagate to children of the application and new processes spawned by
+execve(2)
+(see the
+make(1)
+example below)
+.
 
 The
 'error'
@@ -57,24 +87,6 @@ to display the command passed to
 execvp(3)
 and the
 *execpromises*.
-
-**abstain**
-imposes a
-pledge(2)
-*promise set*
-on the application as a whole.
-Depending on the nature of the application, it could fail to launch or abort execution at a later stage when a
-pledge(2)
-violation occurs.
-
-Due to the nature of
-*execpromises*,
-the restrictions will propagate to children of the application and new processes spawned by
-execve(2)
-(see the
-make(1)
-example below)
-.
 
 # EXAMPLES
 
